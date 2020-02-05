@@ -8,7 +8,6 @@ import string
 from nltk.corpus import stopwords
 # from nltk.util import ngrams
 import spacy
-
 nlp = spacy.load("en_core_web_sm")
 nltk.download('punkt')
 nltk.download('stopwords')
