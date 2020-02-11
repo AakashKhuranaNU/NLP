@@ -29,6 +29,9 @@ CLEAN_AWARD_NAMES = {}
 TWEETS = []
 AWARD_TWEET_DICT = {}
 AWARD_NOMINEE_DICT = {}
+AWARD_WINNER_DICT = {}
+AWARD_PRESENTER_DICT = {}
+HOSTS = []
 FILM_DATA = pd.DataFrame()
 YEAR = 2013
 stop_words = set(stopwords.words('english'))
@@ -183,6 +186,7 @@ def get_hosts(year):
     '''Hosts is a list of one or more strings. Do NOT change the name
     of this function or what it returns.'''
     # Your code here
+    global HOSTS
     pre_ceremony(year)
 
     get_tweets(year)
@@ -283,6 +287,7 @@ def get_hosts(year):
     # print("ratio",(host_fil[0][1]/host_fil[1][1]))
     print("total tweets", j, k, m, n)
     # hosts = []
+    HOSTS = ans
     return ans
 
 
@@ -945,7 +950,7 @@ def get_winner(year):
     names as keys, and each entry containing a single string.
     Do NOT change the name of this function or what it returns.'''
     # Your code here
-    global CLEAN_AWARD_NAMES, OFFICIAL_AWARDS_LIST
+    global CLEAN_AWARD_NAMES, OFFICIAL_AWARDS_LIST, AWARD_WINNER_DICT
     AWARD_WINNER_DICT = {}
     t = []
     mul_categ = []
@@ -1206,7 +1211,24 @@ def get_winner(year):
     # print("val vhevlk",t)
     # print("val vhevlk", tup)
 
+    generate_json()
     return AWARD_WINNER_DICT
+
+
+def generate_json():
+    global HOSTS, AWARD_WINNER_DICT, AWARD_NOMINEE_DICT, AWARD_PRESENTER_DICT, OFFICIAL_AWARDS_LIST
+    answer = {}
+    answer['hosts'] = HOSTS
+
+    for award in OFFICIAL_AWARDS_LIST:
+        temp = {}
+        temp["Presenters"] = AWARD_PRESENTER_DICT[award]
+        temp["Nominees"] = AWARD_NOMINEE_DICT[award]
+        temp["Winner"] = AWARD_WINNER_DICT[award]
+        answer[award] = temp
+
+    with open('answers.json', 'w') as f:
+        json.dump(answer, f)
 
 
 def get_presenters(year):
@@ -1220,7 +1242,7 @@ def get_presenters(year):
     stop = ["movie", "foreign", "golden", "award", "goldenglobes", "globes", "goldenglobes", "film"]
 
     ia = IMDb()
-    AWARD_PRESENTER_DICT = {}
+    global AWARD_PRESENTER_DICT
     for award in OFFICIAL_AWARDS_LIST:
         AWARD_PRESENTER_DICT[award] = []
 
@@ -1312,10 +1334,10 @@ def pre_ceremony(YEAR):
                             'picture made for television', 'best performance by an actor in a supporting role in a '
                                                            'series, mini-series or motion picture made for television']
 
-    df = pd.read_csv("title.basics.tsv", sep="\t", usecols=['titleType', 'primaryTitle', 'startYear', 'genres'],
+    df = pd.read_csv("film_data.csv", usecols=['titleType', 'primaryTitle', 'startYear', 'genres'],
                      dtype={"titleType": object, "primaryTitle": object, "startYear": object, "genres": object})
     FILM_DATA = df.loc[(df['startYear'] == str(int(YEAR) - 1)) | (df['startYear'] == str(YEAR))]
-    FILM_DATA.to_csv('film_data.csv')
+    # FILM_DATA.to_csv('film_data.csv')
     print("Size of filmDB: {}".format(FILM_DATA.shape))
 
     print("Pre-ceremony processing complete.")
