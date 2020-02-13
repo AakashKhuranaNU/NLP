@@ -915,7 +915,7 @@ def generate_json(YEAR):
         temp["Winner"] = AWARD_WINNER_DICT[award]
         answer[award] = temp
 
-    name = "gg{}answers.json".format(YEAR)
+    name = "g{}answers.json".format(YEAR)
     with open(name, 'w') as f:
         json.dump(answer, f)
 
