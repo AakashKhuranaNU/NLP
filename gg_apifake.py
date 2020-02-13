@@ -40,6 +40,9 @@ YEAR = 2013
 stop_words = set(stopwords.words('english'))
 FUZZ_LIMIT = 90
 
+OFFICIAL_AWARDS_1315 = ['cecil b. demille award', 'best motion picture - drama', 'best performance by an actress in a motion picture - drama', 'best performance by an actor in a motion picture - drama', 'best motion picture - comedy or musical', 'best performance by an actress in a motion picture - comedy or musical', 'best performance by an actor in a motion picture - comedy or musical', 'best animated feature film', 'best foreign language film', 'best performance by an actress in a supporting role in a motion picture', 'best performance by an actor in a supporting role in a motion picture', 'best director - motion picture', 'best screenplay - motion picture', 'best original score - motion picture', 'best original song - motion picture', 'best television series - drama', 'best performance by an actress in a television series - drama', 'best performance by an actor in a television series - drama', 'best television series - comedy or musical', 'best performance by an actress in a television series - comedy or musical', 'best performance by an actor in a television series - comedy or musical', 'best mini-series or motion picture made for television', 'best performance by an actress in a mini-series or motion picture made for television', 'best performance by an actor in a mini-series or motion picture made for television', 'best performance by an actress in a supporting role in a series, mini-series or motion picture made for television', 'best performance by an actor in a supporting role in a series, mini-series or motion picture made for television']
+OFFICIAL_AWARDS_1819 = ['best motion picture - drama', 'best motion picture - musical or comedy', 'best performance by an actress in a motion picture - drama', 'best performance by an actor in a motion picture - drama', 'best performance by an actress in a motion picture - musical or comedy', 'best performance by an actor in a motion picture - musical or comedy', 'best performance by an actress in a supporting role in any motion picture', 'best performance by an actor in a supporting role in any motion picture', 'best director - motion picture', 'best screenplay - motion picture', 'best motion picture - animated', 'best motion picture - foreign language', 'best original score - motion picture', 'best original song - motion picture', 'best television series - drama', 'best television series - musical or comedy', 'best television limited series or motion picture made for television', 'best performance by an actress in a limited series or a motion picture made for television', 'best performance by an actor in a limited series or a motion picture made for television', 'best performance by an actress in a television series - drama', 'best performance by an actor in a television series - drama', 'best performance by an actress in a television series - musical or comedy', 'best performance by an actor in a television series - musical or comedy', 'best performance by an actress in a supporting role in a series, limited series or motion picture made for television', 'best performance by an actor in a supporting role in a series, limited series or motion picture made for television', 'cecil b. demille award']
+
 # golden globes stopwords
 goldenGlobes_StopWords = ['golden', 'globes', 'goldenglobes', 'globe']
 # Red Carpet Dress
@@ -181,7 +184,7 @@ def generate_award_tweet_dict():
                         break
 
         # print(AWARD_TWEET_DICT[award][:10])
-        print(len(AWARD_TWEET_DICT[award]))
+        # print(len(AWARD_TWEET_DICT[award]))
 
 
 def generate_award_tweet_dict_old():
@@ -292,7 +295,7 @@ def get_hosts(year):
     host_dic = {}
     disc = []
     t = t.most_common(7)
-    print(t)
+
     for i in range(0, 7):
         ch = 0
         for j in range(0, 7):
@@ -456,8 +459,8 @@ def get_awards(year):
                 categ = ""
 
     fil_categ = {}
-    print("multiple_categ", mul_categ)
-    print("new_categs", new_categ)
+    # print("multiple_categ", mul_categ)
+    # print("new_categs", new_categ)
 
     t = collections.Counter(new_categ)
     g = dict(t)
@@ -486,12 +489,12 @@ def get_awards(year):
     ch = 0
     for i in u:
         ch += 1
-    print(ch)
+    # print(ch)
     h = collections.Counter(mul_categ)
-    print("new categ1111", t)
-    print("new categ222", t.most_common())
-    print("new categ333", u.most_common(), len(u))
-    print("new categ444", u.most_common(50), len(u))
+    # print("new categ1111", t)
+    # print("new categ222", t.most_common())
+    # print("new categ333", u.most_common(), len(u))
+    # print("new categ444", u.most_common(50), len(u))
     finalise = u.most_common(50)
     ans = []
 
@@ -504,7 +507,7 @@ def get_awards(year):
         ans.append(st)
         # print("lat check", st, "chchhc", st[0:1])
 
-    print(len(t))
+    # print(len(t))
     f = dict(h)
     # print("dict check",f[0])
     # print("multiple_categ 1",len(f))
@@ -519,7 +522,7 @@ def get_awards(year):
     for i in ex:
         if (ex[i] > 15):
             ans.append(i)
-    print("final list is ", ans)
+    # print("final list is ", ans)
     for i in f.keys():
         for j in genre_lis:
             if j in i:
@@ -527,7 +530,7 @@ def get_awards(year):
                 break
 
 
-    print("total tweets", n, m)
+    # print("total tweets", n, m)
     # print(ans)
 
     # ==> use this
@@ -560,7 +563,7 @@ def get_nominees(year):
 
     new_award_list = [a for a in OFFICIAL_AWARDS_LIST if a not in award_list]
     for award in new_award_list:
-        print(award)
+        # print(award)
         if any(p in award for p in person_related_tweets):
             temp = []
             for tweet in AWARD_TWEET_DICT[award]:
@@ -620,14 +623,14 @@ def get_nominees(year):
                         word not in ent.text.lower() for word in not_search_list):
                     if ent.text not in woa:
                         woa.append(ent.text.replace('"', ''))
-    print("woa", woa)
+    # print("woa", woa)
 
     new_arr = []
     for a in woa:
         if a.title() in FILM_DATA.values:
             new_arr.append(a)
 
-        print("new", new_arr)
+        # print("new", new_arr)
         for award in award_list:
             AWARD_NOMINEE_DICT[award] = new_arr[:10]
 
@@ -680,7 +683,7 @@ def get_winner(year):
     for t in TWEETS:
 
         co += 1
-        print(co)
+        # print(co)
 
         word_tokens = word_tokenize(t)
 
@@ -716,7 +719,7 @@ def get_winner(year):
             if i == j:
                 ci += 1
         if ci == 0:
-            print("nf", j)
+            # print("nf", j)
             res = get_winner_old([j])
             ans[j] = res[j]
 
@@ -886,7 +889,7 @@ def get_winner_old(award_given):
         # print("temp", temp2)
         if len(temp2) > 0:
             arr = temp2.most_common(5)
-            print(arr)
+            # print(arr)
             for tup in arr:
                 if tup[arr.index(tup)][0]:
                     AWARD_WINNER_DICT[award] = tup[0]
@@ -915,7 +918,7 @@ def generate_json(YEAR):
         temp["Winner"] = AWARD_WINNER_DICT[award]
         answer[award] = temp
 
-    name = "gg{}answers.json".format(YEAR)
+    name = "g{}answers.json".format(YEAR)
     with open(name, 'w') as f:
         json.dump(answer, f)
 
@@ -971,7 +974,7 @@ def get_presenters(year):
                 if presenter not in AWARD_PRESENTER_DICT[award]:
                     AWARD_PRESENTER_DICT[award].append(presenter)
 
-    print(AWARD_PRESENTER_DICT)
+    # print(AWARD_PRESENTER_DICT)
     return AWARD_PRESENTER_DICT
 
 
@@ -982,46 +985,15 @@ def pre_ceremony(YEAR):
     Do NOT change the name of this function or what it returns.'''
     # Your code here
     global OFFICIAL_AWARDS_LIST, FILM_DATA
-    '''
+
     if YEAR == 2013 or YEAR == 2015:
-        f = open('award_names_1315.txt', 'r')
-        awards_list = f.read()
-        OFFICIAL_AWARDS_LIST = awards_list.split('\n')
-    if YEAR == 2018 or YEAR == 2019 or YEAR == 2020:
-        f = open('award_names_1920.txt', 'r')
-        awards_list = f.read()
-        OFFICIAL_AWARDS_LIST = awards_list.split('\n')
-    '''
+        OFFICIAL_AWARDS_LIST = OFFICIAL_AWARDS_1315
+    else:
+        OFFICIAL_AWARDS_LIST = OFFICIAL_AWARDS_1819
+
     # f = open('award_names_1315.txt', 'r')
     # awards_list = f.read()
     # OFFICIAL_AWARDS_LIST = ['best motion picture - drama']
-    OFFICIAL_AWARDS_LIST = ['cecil b. demille award', 'best motion picture - drama', 'best performance by an actress '
-                                                                                     'in a motion picture - drama',
-                            'best performance by an actor in a motion picture - drama', 'best motion picture - comedy '
-                                                                                        'or musical',
-                            'best performance by an actress in a motion picture - comedy or musical',
-                            'best performance by an actor in a motion picture - comedy or musical', 'best animated '
-                                                                                                    'feature film',
-                            'best foreign language film', 'best performance by an actress in a supporting role in a '
-                                                          'motion picture', 'best performance by an actor in a '
-                                                                            'supporting role in a motion picture',
-                            'best director - motion picture', 'best screenplay - motion picture', 'best original '
-                                                                                                  'score - motion '
-                                                                                                  'picture',
-                            'best original song - motion picture', 'best television series - drama',
-                            'best performance by an actress in a television series - drama', 'best performance by an '
-                                                                                             'actor in a television '
-                                                                                             'series - drama',
-                            'best television series - comedy or musical', 'best performance by an actress in a '
-                                                                          'television series - comedy or musical',
-                            'best performance by an actor in a television series - comedy or musical',
-                            'best mini-series or motion picture made for television', 'best performance by an actress '
-                                                                                      'in a mini-series or motion '
-                                                                                      'picture made for television',
-                            'best performance by an actor in a mini-series or motion picture made for television',
-                            'best performance by an actress in a supporting role in a series, mini-series or motion '
-                            'picture made for television', 'best performance by an actor in a supporting role in a '
-                                                           'series, mini-series or motion picture made for television']
 
     df = pd.read_csv("film_data.csv", usecols=['titleType', 'primaryTitle', 'startYear', 'genres'],
                      dtype={"titleType": object, "primaryTitle": object, "startYear": object, "genres": object})
@@ -1045,7 +1017,6 @@ def main():
     year = input()
 
     pre_ceremony(YEAR)
-
     get_tweets(YEAR)
     get_hosts(YEAR)
     get_awards(YEAR)
@@ -1053,16 +1024,17 @@ def main():
     get_presenters(YEAR)
     get_winner(YEAR)
     generate_json(YEAR)
-    # print("Running Additional Tasks")
-    # hashtag_trends()
-    # sentiment()
-    # redCarpet_dress(best_dressed(TWEETS), worst_dressed(TWEETS))
+    print("Running Additional Tasks")
+    hashtag_trends(YEAR)
+    sentiment(YEAR)
+    bd = best_dressed(TWEETS)
+    wd = worst_dressed(TWEETS)
+    redCarpet_dress(bd, wd)
 
     return
 
 
-def hashtag_trends():
-    global TWEETS
+def hashtag_trends(YEAR):
     t = []
     mul_categ = []
     new_categ = []
@@ -1084,7 +1056,15 @@ def hashtag_trends():
     estop = ['for', 'at', "https", 'golden', 'http', '#', '.', '!', '-', '?', '\\', ':', ';', '"', "'", 'the', 'but',
              'although', '#goldenglobes', 'and', '`', 'who', '&']
 
-    for t in TWEETS:
+    f = 'gg{}.json'.format(YEAR)
+
+    if YEAR == 2020:
+        data = [json.loads(line) for line in open(f, 'r')]
+    else:
+        fp = open(f, 'r')
+        data = json.load(fp)
+
+    for t in data:
         # print("hey",t["timestamp_ms"])
         # ts = t["timestamp_ms"] / 1000
         s = t["text"].split(" ")
@@ -1093,7 +1073,7 @@ def hashtag_trends():
                 i = i.lower()
                 if "golden" not in i[1:]:
                     has.append(i)
-                    print(i[1:])
+                    # print(i[1:])
 
     ed = collections.Counter(has).most_common(30)
     x = []
@@ -1114,11 +1094,11 @@ def hashtag_trends():
     plt.title('Hashtags Trend')
     plt.show()
 
-    print("total tweets", n, m)
+    # print("total tweets", n, m)
 
 
-def sentiment():
-    global TWEETS
+def sentiment(YEAR):
+
     t = []
     mul_categ = []
     new_categ = []
@@ -1149,7 +1129,16 @@ def sentiment():
     time = []
     y = []
     count = 0
-    for t in TWEETS:
+
+    f = 'gg{}.json'.format(YEAR)
+
+    if YEAR == 2020:
+        data = [json.loads(line) for line in open(f, 'r')]
+    else:
+        fp = open(f, 'r')
+        data = json.load(fp)
+
+    for t in data:
         # print("hey",t["timestamp_ms"])
         ts = t["timestamp_ms"]
         # dt_object = datetime.fromtimestamp(ts)
@@ -1160,7 +1149,7 @@ def sentiment():
         blob = TextBlob(str)
         y.append(blob.sentences[0].sentiment.polarity)
         count += 1
-        print(count)
+        # print(count)
         # print(y)
     int = time[0]
     count = 0
@@ -1171,10 +1160,10 @@ def sentiment():
     yax = []
     for i in range(0, len(time)):
         diff = time[i] - int
-        print(diff)
-        print("count", count)
+        # print(diff)
+        # print("count", count)
         if float(diff) > 10000:
-            print("change", diff, " ", count)
+            # print("change", diff, " ", count)
             x = x + 10000
             y1 = (sum2 / count)
             xax.append(x)
@@ -1188,12 +1177,15 @@ def sentiment():
             sum2 = sum2 + y[i]
             count += 1
     l = len(y)
-    print(xax)
-    print(yax)
+    # print(xax)
+    # print(yax)
     plt.plot(xax, yax)
+    plt.ylabel('Sentiment')
+    plt.xlabel('Time')
+    plt.title('Sentiment Trend')
     plt.show()
 
-    print("total tweets", n, m)
+    # print("total tweets", n, m)
 
 
 def bigrams(tokens, valid_keyword, invalid_keyword):
@@ -1268,16 +1260,20 @@ def redCarpet_dress(best_dress, worst_dress):
 
     f = open("red_carpet_results.txt", "w")
     f.write("best_dress")
-    f.write()
-    f.write(best)
-    f.write()
+    f.write('\n')
+    for b in best:
+        f.write(b)
+        f.write('\n')
     f.write("worst_dress")
-    f.write()
-    f.write(worst)
-    f.write()
+    f.write('\n')
+    for w in worst:
+        f.write(w)
+        f.write('\n')
     f.write("controversial_dress")
-    f.write()
-    f.write(controversial)
+    f.write('\n')
+    for c in controversial:
+        f.write(c)
+        f.write('\n')
     f.close()
 
 
