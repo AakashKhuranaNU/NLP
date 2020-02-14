@@ -49,14 +49,15 @@ OFFICIAL_AWARDS = []
 
 
 def get_answers(year):
+<<<<<<< HEAD
     global OFFICIAL_AWARDS
     if year == '2013' or year == '2015':
         OFFICIAL_AWARDS = OFFICIAL_AWARDS_1315
     else:
         OFFICIAL_AWARDS = OFFICIAL_AWARDS_1819
     with open('answers{}.json'.format(year), 'r') as f:
-        fres = json.load(f)
-    return fres
+=======
+ 
 
 
 def get_hosts(year):
