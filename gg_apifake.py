@@ -1069,7 +1069,7 @@ def hashtag_trends(year):
         y.append(i[1])
 
 
-
+    fig = plt.figure()
     plt.bar(x, y)
     # plt.yticks(y, x)
 
@@ -1077,8 +1077,8 @@ def hashtag_trends(year):
     plt.ylabel('Frequency')
     plt.xlabel('Hashtags')
     plt.title('Hashtags Trend')
-    plt.show()
-
+    # plt.show()
+    fig.savefig('hashtag trends')
     # print("total tweets", n, m)
 
 
@@ -1164,11 +1164,13 @@ def sentiment(year):
     l = len(y)
     # print(xax)
     # print(yax)
+    fig = plt.figure()
     plt.plot(xax, yax)
     plt.ylabel('Sentiment')
     plt.xlabel('Time')
     plt.title('Sentiment Trend')
-    plt.show()
+    fig.savefig('sentiments.png')
+    # plt.show()
 
     # print("total tweets", n, m)
 
