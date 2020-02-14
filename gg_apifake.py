@@ -1009,12 +1009,12 @@ def main():
     get_winner(year)
     print("Winners")
     generate_json(year)
-    # print("Running Additional Tasks")
-    # hashtag_trends(year)
-    # sentiment(year)
-    # bd = best_dressed(TWEETS)
-    # wd = worst_dressed(TWEETS)
-    # redCarpet_dress(bd, wd)
+    print("Running Additional Tasks")
+    hashtag_trends(year)
+    sentiment(year)
+    bd = best_dressed(TWEETS)
+    wd = worst_dressed(TWEETS)
+    redCarpet_dress(bd, wd)
 
     return
 
