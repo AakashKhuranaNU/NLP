@@ -1078,7 +1078,7 @@ def hashtag_trends(year):
     plt.xlabel('Hashtags')
     plt.title('Hashtags Trend')
     # plt.show()
-    fig.savefig('hashtag trends')
+    fig.savefig('hashtag-trends.png')
     # print("total tweets", n, m)
 
 
