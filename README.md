@@ -18,7 +18,7 @@ How to run:
 2. Create a virtual environment if needed and activate the environment
 3. Run $ pip install -r  requirements.txt
 4. Put "ggYYYY.json", "ggYYYYanswers.json" and "autograder.py" files in the root directory.
-6. Run gg_apifake.py followed by autograder.py
+6. Run gg_apifake.py followed by autograder.py separately for each year.
   (gg_apifake.py would need a year to run and creates a json named --> answersYYYY.json
   run autograder to get the scores --> (gg_api uses the above json to generate the answers for the autograder)
  7. Additional Task (defined inside gg_apifake.py) are : 
