@@ -37,7 +37,6 @@ AWARD_WINNER_DICT = {}
 AWARD_PRESENTER_DICT = {}
 HOSTS = []
 FILM_DATA = pd.DataFrame()
-YEAR = 2013
 stop_words = set(stopwords.words('english'))
 FUZZ_LIMIT = 90
 
@@ -68,13 +67,13 @@ worst_dress_list = ['ugly', 'hate', 'awful', 'terrible', 'worst', 'sucks', 'not'
                     'hateful', 'laughable', 'controversial', 'dreadful', 'trashy']
 
 
-def get_tweets(YEAR):
+def get_tweets(year):
     global TWEETS
 
-    print("Loading tweets for year {}...".format(YEAR))
-    f = 'gg{}.json'.format(YEAR)
+    print("Loading tweets for year {}...".format(year))
+    f = 'gg{}.json'.format(year)
 
-    if YEAR == 2020:
+    if year == '2020':
         data = [json.loads(line) for line in open(f, 'r')]
         TWEETS = [t["text"].strip() for t in data]
         TWEETS = pre_process(TWEETS)
@@ -214,7 +213,7 @@ def generate_award_tweet_dict_old():
                                                                        'tv', 'television', 'tv movie',
                                                                        'tv series', 'television series',
                                                                        'motion picture']
-    substitutes["Television Series - Drama"] = ['televisin series', 'tv series', "tv drama", "drama series",
+    substitutes["Television Series - Drama"] = ['television series', 'tv series', "tv drama", "drama series",
                                                 "television drama", "t.v. drama"]
     substitutes["Television Series"] = ['series', 'tv', 't.v.', 'television']
     substitutes["Television"] = ['tv', 't.v.']
@@ -324,7 +323,7 @@ def get_awards(year):
     '''Awards is a list of strings. Do NOT change the name
     of this function or what it returns.'''
     # Your code here
-    global AWARD_LIST, TWEETS
+    global TWEETS
 
     get_tweets(year)
     t = []
@@ -538,7 +537,6 @@ def get_awards(year):
 
     # ==> use this
     # results = getattr(gg_api, 'get_%s' % info_type)(year)
-    AWARD_LIST = ans
     return ans
 
 
@@ -887,7 +885,7 @@ def get_winner_old(award_given):
     return AWARD_WINNER_DICT
 
 
-def generate_json(YEAR):
+def generate_json(year):
     global HOSTS, AWARD_WINNER_DICT, AWARD_NOMINEE_DICT, AWARD_PRESENTER_DICT, OFFICIAL_AWARDS_LIST
     answer = {}
     answer['hosts'] = HOSTS
@@ -899,7 +897,7 @@ def generate_json(YEAR):
         temp["Winner"] = AWARD_WINNER_DICT[award]
         answer[award] = temp
 
-    name = "answers{}.json".format(YEAR)
+    name = "answers{}.json".format(year)
     with open(name, 'w') as f:
         json.dump(answer, f)
 
@@ -960,7 +958,7 @@ def get_presenters(year):
     return AWARD_PRESENTER_DICT
 
 
-def pre_ceremony(YEAR):
+def pre_ceremony(year):
     '''This function loads/fetches/processes any data your program
     will use, and stores that data in your DB or in a json, csv, or
     plain text file. It is the first thing the TA will run when grading.
@@ -968,7 +966,7 @@ def pre_ceremony(YEAR):
     # Your code here
     global OFFICIAL_AWARDS_LIST, FILM_DATA
 
-    if YEAR == 2013 or YEAR == 2015:
+    if str(year) == '2013' or str(year) == '2015':
         OFFICIAL_AWARDS_LIST = OFFICIAL_AWARDS_1315
     else:
         OFFICIAL_AWARDS_LIST = OFFICIAL_AWARDS_1819
@@ -979,7 +977,7 @@ def pre_ceremony(YEAR):
 
     df = pd.read_csv("film_data.csv", usecols=['titleType', 'primaryTitle', 'startYear', 'genres'],
                      dtype={"titleType": object, "primaryTitle": object, "startYear": object, "genres": object})
-    FILM_DATA = df.loc[(df['startYear'] == str(int(YEAR) - 1)) | (df['startYear'] == str(YEAR))]
+    FILM_DATA = df.loc[(df['startYear'] == str(int(year) - 1)) | (df['startYear'] == str(year))]
     # FILM_DATA.to_csv('film_data.csv')
     print("Size of filmDB: {}".format(FILM_DATA.shape))
 
@@ -993,27 +991,27 @@ def main():
     and then run gg_api.main(). This is the second thing the TA will
     run when grading. Do NOT change the name of this function or
     what it returns.'''
-    global YEAR, TWEETS
+    global TWEETS
 
     print("Enter YEAR")
     year = input()
 
-    pre_ceremony(YEAR)
-    get_tweets(YEAR)
-    get_hosts(YEAR)
+    pre_ceremony(year)
+    get_tweets(year)
+    get_hosts(year)
     print("Hosts")
     # get_awards(YEAR)
     # print("Awards")
-    get_nominees(YEAR)
+    get_nominees(year)
     print("Nominees")
-    get_presenters(YEAR)
+    get_presenters(year)
     print("Presenters")
-    get_winner(YEAR)
+    get_winner(year)
     print("Winners")
-    generate_json(YEAR)
-    print("Running Additional Tasks")
-    # hashtag_trends(YEAR)
-    # sentiment(YEAR)
+    generate_json(year)
+    # print("Running Additional Tasks")
+    # hashtag_trends(year)
+    # sentiment(year)
     # bd = best_dressed(TWEETS)
     # wd = worst_dressed(TWEETS)
     # redCarpet_dress(bd, wd)
@@ -1021,7 +1019,7 @@ def main():
     return
 
 
-def hashtag_trends(YEAR):
+def hashtag_trends(year):
     t = []
     mul_categ = []
     new_categ = []
@@ -1043,9 +1041,9 @@ def hashtag_trends(YEAR):
     estop = ['for', 'at', "https", 'golden', 'http', '#', '.', '!', '-', '?', '\\', ':', ';', '"', "'", 'the', 'but',
              'although', '#goldenglobes', 'and', '`', 'who', '&']
 
-    f = 'gg{}.json'.format(YEAR)
+    f = 'gg{}.json'.format(year)
 
-    if YEAR == 2020:
+    if year == '2020':
         data = [json.loads(line) for line in open(f, 'r')]
     else:
         fp = open(f, 'r')
@@ -1084,7 +1082,7 @@ def hashtag_trends(YEAR):
     # print("total tweets", n, m)
 
 
-def sentiment(YEAR):
+def sentiment(year):
 
     t = []
     mul_categ = []
@@ -1117,9 +1115,9 @@ def sentiment(YEAR):
     y = []
     count = 0
 
-    f = 'gg{}.json'.format(YEAR)
+    f = 'gg{}.json'.format(year)
 
-    if YEAR == 2020:
+    if year == '2020':
         data = [json.loads(line) for line in open(f, 'r')]
     else:
         fp = open(f, 'r')
