@@ -28,6 +28,7 @@ nltk.download('words')
 nlp = spacy.load('en_core_web_sm')
 
 OFFICIAL_AWARDS_LIST = []
+AWARD_LIST = []
 CLEAN_AWARD_NAMES = {}
 TWEETS = []
 AWARD_TWEET_DICT = {}
@@ -234,7 +235,7 @@ def get_hosts(year):
     '''Hosts is a list of one or more strings. Do NOT change the name
     of this function or what it returns.'''
     # Your code here
-    global HOSTS
+    global HOSTS, TWEETS
 
     i = 0
     j = 0
@@ -323,7 +324,9 @@ def get_awards(year):
     '''Awards is a list of strings. Do NOT change the name
     of this function or what it returns.'''
     # Your code here
+    global AWARD_LIST, TWEETS
 
+    get_tweets(year)
     t = []
     mul_categ = []
     new_categ = []
@@ -535,6 +538,7 @@ def get_awards(year):
 
     # ==> use this
     # results = getattr(gg_api, 'get_%s' % info_type)(year)
+    AWARD_LIST = ans
     return ans
 
 
@@ -639,7 +643,7 @@ def get_nominees(year):
 
 
 def get_winner(year):
-    global TWEETS
+    global TWEETS, AWARD_WINNER_DICT
     # t=[]
     # lem=WordNetLemmatizer()
     # print(lem.lemmatize("won"))
@@ -652,29 +656,6 @@ def get_winner(year):
              'who', '&', "``"]
     estop = ['for', 'at', "https", 'golden' 'http', '#', '.', ',', '!', '-', '?', '\\', ':', ';', '"', "'", 'the',
              'but', 'although']
-    OFFICIAL_AWARDS = ['cecil b. demille award', 'best motion picture - drama',
-                       'best performance by an actress in a motion picture - drama',
-                       'best performance by an actor in a motion picture - drama',
-                       'best motion picture - comedy or musical',
-                       'best performance by an actress in a motion picture - comedy or musical',
-                       'best performance by an actor in a motion picture - comedy or musical',
-                       'best animated feature film',
-                       'best foreign language film',
-                       'best performance by an actress in a supporting role in a motion picture',
-                       'best performance by an actor in a supporting role in a motion picture',
-                       'best director - motion picture', 'best screenplay - motion picture',
-                       'best original score - motion picture', 'best original song - motion picture',
-                       'best television series - drama',
-                       'best performance by an actress in a television series - drama',
-                       'best performance by an actor in a television series - drama',
-                       'best television series - comedy or musical',
-                       'best performance by an actress in a television series - comedy or musical',
-                       'best performance by an actor in a television series - comedy or musical',
-                       'best mini-series or motion picture made for television',
-                       'best performance by an actress in a mini-series or motion picture made for television',
-                       'best performance by an actor in a mini-series or motion picture made for television',
-                       'best performance by an actress in a supporting role in a series, mini-series or motion picture made for television',
-                       'best performance by an actor in a supporting role in a series, mini-series or motion picture made for television']
 
     a = set()
     list = []
@@ -713,7 +694,7 @@ def get_winner(year):
         sent = ""
 
     ans = {}
-    for j in OFFICIAL_AWARDS:
+    for j in OFFICIAL_AWARDS_LIST:
         ci = 0
         for i in a:
             if i == j:
@@ -727,7 +708,7 @@ def get_winner(year):
         ans[i] = collections.Counter(pre[i]).most_common(1)[0][0]
 
 
-    return ans
+    AWARD_WINNER_DICT = ans
 
 
 def get_winner_old(award_given):
@@ -918,7 +899,7 @@ def generate_json(YEAR):
         temp["Winner"] = AWARD_WINNER_DICT[award]
         answer[award] = temp
 
-    name = "g{}answers.json".format(YEAR)
+    name = "answers{}.json".format(YEAR)
     with open(name, 'w') as f:
         json.dump(answer, f)
 
@@ -928,28 +909,29 @@ def get_presenters(year):
     names as keys, and each entry a list of strings. Do NOT change the
     name of this function or what it returns.'''
     # Your code here
-    single_presenter_pattern = re.compile(r'[A-Z][a-z]+\s[A-Z][a-z]+(?=\spresent)')
-    multiple_presenters_pattern = re.compile(
-        r'[A-Z][a-z]+\s[A-Z][a-z]+\sand\s[A-Z][a-z]+\s[A-Z][a-z]+(?=\spresent|\sintroduc)')
+    global AWARD_PRESENTER_DICT
     stop = ["movie", "foreign", "golden", "award", "goldenglobes", "globes", "goldenglobes", "film"]
+    multiple_presenters = re.compile(
+        r'[A-Z][a-z]+\s[A-Z][a-z]+\sand\s[A-Z][a-z]+\s[A-Z][a-z]+(?=\spresent|\sintroduc)')
+    single_presenter = re.compile(r'[A-Z][a-z]+\s[A-Z][a-z]+(?=\spresent)')
 
     ia = IMDb()
-    global AWARD_PRESENTER_DICT
+
     for award in OFFICIAL_AWARDS_LIST:
         AWARD_PRESENTER_DICT[award] = []
 
         for tweet in AWARD_TWEET_DICT[award]:
-            multiple_presenters = re.findall(multiple_presenters_pattern, tweet)
+            multiple_presenters_inst = re.findall(multiple_presenters, tweet)
 
-            for presenter in multiple_presenters:
-                pp = presenter.split(' and ')
-                p1 = pp[0]
+            for presenter in multiple_presenters_inst:
+                pres = presenter.split(' and ')
+                p1 = pres[0]
                 if any(word in p1 for word in stop):
                     continue
 
-                pt = pp[1]
-                ptt = pt.split(' ')
-                p2 = " ".join(ptt[:2])
+                p2 = pres[1]
+                part = p2.split(' ')
+                p2 = " ".join(part[:2])
                 if any(word in p2 for word in stop):
                     continue
 
@@ -964,8 +946,8 @@ def get_presenters(year):
                 if p2 not in AWARD_PRESENTER_DICT[award]:
                     AWARD_PRESENTER_DICT[award].append(p2)
 
-            single_presenter = re.findall(single_presenter_pattern, tweet)
-            for presenter in single_presenter:
+            single_presenter_inst = re.findall(single_presenter, tweet)
+            for presenter in single_presenter_inst:
                 if any(word in presenter for word in stop):
                     continue
                 person = ia.search_person(presenter)
@@ -1019,17 +1001,22 @@ def main():
     pre_ceremony(YEAR)
     get_tweets(YEAR)
     get_hosts(YEAR)
-    get_awards(YEAR)
+    print("Hosts")
+    # get_awards(YEAR)
+    # print("Awards")
     get_nominees(YEAR)
+    print("Nominees")
     get_presenters(YEAR)
+    print("Presenters")
     get_winner(YEAR)
+    print("Winners")
     generate_json(YEAR)
     print("Running Additional Tasks")
-    hashtag_trends(YEAR)
-    sentiment(YEAR)
-    bd = best_dressed(TWEETS)
-    wd = worst_dressed(TWEETS)
-    redCarpet_dress(bd, wd)
+    # hashtag_trends(YEAR)
+    # sentiment(YEAR)
+    # bd = best_dressed(TWEETS)
+    # wd = worst_dressed(TWEETS)
+    # redCarpet_dress(bd, wd)
 
     return
 
