@@ -21,7 +21,9 @@ How to run:
 6. Run gg_apifake.py followed by autograder.py
   (gg_apifake.py would need a year to run and creates a json named --> answersYYYY.json
   run autograder to get the scores --> (gg_api uses the above json to generate the answers for the autograder)
- 7. Additional Task are : a) Trending Hashtags b) Tweet Sentiments with respet to time c) Worst Dressed d) Best Dressed e) Controversial Dress
-    - Additional tasks are defined inside gg_apifake.py
+ 7. Additional Task (defined inside gg_apifake.py) are : 
+ a) Trending Hashtags (saves image as "hastag-trends.png") 
+ b) Tweet Sentiments with respet to time (saves image as "sentiments.png")
+ c) Worst Dressed d) Best Dressed e) Controversial Dress (saves as a .txt file named "red_carpet_results.txt") 
    
     
