@@ -1298,14 +1298,7 @@ def worst_dressed(tweets):
 if __name__ == '__main__':
     print("Enter YEAR")
     year = input()
-    start_time, start_resources = timestamp(), resource_usage(RUSAGE_SELF)
     main(year)
-    end_resources, end_time = resource_usage(RUSAGE_SELF), timestamp()
-
-    print({'real': (end_time - start_time) / 60.0,
-            'sys': end_resources.ru_stime - start_resources.ru_stime,
-            'user': end_resources.ru_utime - start_resources.ru_utime})
-    
     print("Running Additional Tasks")
     hashtag_trends(year)
     sentiment(year)
