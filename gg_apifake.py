@@ -103,7 +103,7 @@ worst_dress_list = ['ugly', 'hate', 'awful', 'terrible', 'worst', 'sucks', 'not'
                     'hateful', 'laughable', 'controversial', 'dreadful', 'trashy']
 
 
-def get_tweets(year):
+def get_tweets(year, opt=True):
     global TWEETS
 
     print("Loading tweets for year {}...".format(year))
@@ -124,8 +124,9 @@ def get_tweets(year):
         TWEETS = pre_process(TWEETS)
     print("Finished loading {} tweets".format(len(TWEETS)))
 
-    generate_award_tweet_dict_old()
-    generate_award_tweet_dict()
+    if opt:
+      generate_award_tweet_dict_old()
+      generate_award_tweet_dict()
     return
 
 
@@ -358,9 +359,10 @@ def get_awards(year):
     '''Awards is a list of strings. Do NOT change the name
     of this function or what it returns.'''
     # Your code here
+    pre_ceremony(year)
+    get_tweets(year, False)
+    
     global TWEETS
-
-    get_tweets(year)
     t = []
     mul_categ = []
     new_categ = []
@@ -985,7 +987,7 @@ def main(year):
     global TWEETS
 
     pre_ceremony(year)
-    get_tweets(year)
+    get_tweets(year, True)
     get_hosts(year)
     print("Hosts")
     # get_awards(YEAR)
@@ -1303,10 +1305,10 @@ if __name__ == '__main__':
     print({'real': (end_time - start_time) / 60.0,
             'sys': end_resources.ru_stime - start_resources.ru_stime,
             'user': end_resources.ru_utime - start_resources.ru_utime})
+    
     print("Running Additional Tasks")
     hashtag_trends(year)
     sentiment(year)
-    print("sentiment")
     bd = best_dressed(TWEETS)
     wd = worst_dressed(TWEETS)
     redCarpet_dress(bd, wd)
