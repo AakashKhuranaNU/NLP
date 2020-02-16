@@ -2,6 +2,7 @@ Team members: Aakash Khurana, Unnati Parekh, Iram Naaz
 
 
 Packages:
+* ijson
 * fuzzywuzzy
 * IMDbPY
 * nltk
