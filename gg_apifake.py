@@ -6,22 +6,17 @@ from imdb import IMDb
 from nltk import word_tokenize
 from fuzzywuzzy import fuzz
 from textblob import TextBlob
-import string
 from nltk.corpus import stopwords
-# from nltk.util import ngrams
 import spacy
 import pandas as pd
 from nltk.stem import WordNetLemmatizer
 import matplotlib.pyplot as plt
-from gender_detector.gender_detector import GenderDetector
-import numpy as np
-from nltk.corpus import wordnet
-from sklearn.feature_extraction.text import CountVectorizer
-
+from resource import getrusage as resource_usage, RUSAGE_SELF
+from time import time as timestamp
+import ijson
 
 nltk.download('punkt')
 nltk.download('stopwords')
-nltk.download('wordnet')
 nltk.download('averaged_perceptron_tagger')
 nltk.download('maxent_ne_chunker')
 nltk.download('words')
@@ -40,8 +35,49 @@ FILM_DATA = pd.DataFrame()
 stop_words = set(stopwords.words('english'))
 FUZZ_LIMIT = 90
 
-OFFICIAL_AWARDS_1315 = ['cecil b. demille award', 'best motion picture - drama', 'best performance by an actress in a motion picture - drama', 'best performance by an actor in a motion picture - drama', 'best motion picture - comedy or musical', 'best performance by an actress in a motion picture - comedy or musical', 'best performance by an actor in a motion picture - comedy or musical', 'best animated feature film', 'best foreign language film', 'best performance by an actress in a supporting role in a motion picture', 'best performance by an actor in a supporting role in a motion picture', 'best director - motion picture', 'best screenplay - motion picture', 'best original score - motion picture', 'best original song - motion picture', 'best television series - drama', 'best performance by an actress in a television series - drama', 'best performance by an actor in a television series - drama', 'best television series - comedy or musical', 'best performance by an actress in a television series - comedy or musical', 'best performance by an actor in a television series - comedy or musical', 'best mini-series or motion picture made for television', 'best performance by an actress in a mini-series or motion picture made for television', 'best performance by an actor in a mini-series or motion picture made for television', 'best performance by an actress in a supporting role in a series, mini-series or motion picture made for television', 'best performance by an actor in a supporting role in a series, mini-series or motion picture made for television']
-OFFICIAL_AWARDS_1819 = ['best motion picture - drama', 'best motion picture - musical or comedy', 'best performance by an actress in a motion picture - drama', 'best performance by an actor in a motion picture - drama', 'best performance by an actress in a motion picture - musical or comedy', 'best performance by an actor in a motion picture - musical or comedy', 'best performance by an actress in a supporting role in any motion picture', 'best performance by an actor in a supporting role in any motion picture', 'best director - motion picture', 'best screenplay - motion picture', 'best motion picture - animated', 'best motion picture - foreign language', 'best original score - motion picture', 'best original song - motion picture', 'best television series - drama', 'best television series - musical or comedy', 'best television limited series or motion picture made for television', 'best performance by an actress in a limited series or a motion picture made for television', 'best performance by an actor in a limited series or a motion picture made for television', 'best performance by an actress in a television series - drama', 'best performance by an actor in a television series - drama', 'best performance by an actress in a television series - musical or comedy', 'best performance by an actor in a television series - musical or comedy', 'best performance by an actress in a supporting role in a series, limited series or motion picture made for television', 'best performance by an actor in a supporting role in a series, limited series or motion picture made for television', 'cecil b. demille award']
+OFFICIAL_AWARDS_1315 = ['cecil b. demille award', 'best motion picture - drama',
+                        'best performance by an actress in a motion picture - drama',
+                        'best performance by an actor in a motion picture - drama',
+                        'best motion picture - comedy or musical',
+                        'best performance by an actress in a motion picture - comedy or musical',
+                        'best performance by an actor in a motion picture - comedy or musical',
+                        'best animated feature film', 'best foreign language film',
+                        'best performance by an actress in a supporting role in a motion picture',
+                        'best performance by an actor in a supporting role in a motion picture',
+                        'best director - motion picture', 'best screenplay - motion picture',
+                        'best original score - motion picture', 'best original song - motion picture',
+                        'best television series - drama',
+                        'best performance by an actress in a television series - drama',
+                        'best performance by an actor in a television series - drama',
+                        'best television series - comedy or musical',
+                        'best performance by an actress in a television series - comedy or musical',
+                        'best performance by an actor in a television series - comedy or musical',
+                        'best mini-series or motion picture made for television',
+                        'best performance by an actress in a mini-series or motion picture made for television',
+                        'best performance by an actor in a mini-series or motion picture made for television',
+                        'best performance by an actress in a supporting role in a series, mini-series or motion picture made for television',
+                        'best performance by an actor in a supporting role in a series, mini-series or motion picture made for television']
+OFFICIAL_AWARDS_1819 = ['best motion picture - drama', 'best motion picture - musical or comedy',
+                        'best performance by an actress in a motion picture - drama',
+                        'best performance by an actor in a motion picture - drama',
+                        'best performance by an actress in a motion picture - musical or comedy',
+                        'best performance by an actor in a motion picture - musical or comedy',
+                        'best performance by an actress in a supporting role in any motion picture',
+                        'best performance by an actor in a supporting role in any motion picture',
+                        'best director - motion picture', 'best screenplay - motion picture',
+                        'best motion picture - animated', 'best motion picture - foreign language',
+                        'best original score - motion picture', 'best original song - motion picture',
+                        'best television series - drama', 'best television series - musical or comedy',
+                        'best television limited series or motion picture made for television',
+                        'best performance by an actress in a limited series or a motion picture made for television',
+                        'best performance by an actor in a limited series or a motion picture made for television',
+                        'best performance by an actress in a television series - drama',
+                        'best performance by an actor in a television series - drama',
+                        'best performance by an actress in a television series - musical or comedy',
+                        'best performance by an actor in a television series - musical or comedy',
+                        'best performance by an actress in a supporting role in a series, limited series or motion picture made for television',
+                        'best performance by an actor in a supporting role in a series, limited series or motion picture made for television',
+                        'cecil b. demille award']
 
 # golden globes stopwords
 goldenGlobes_StopWords = ['golden', 'globes', 'goldenglobes', 'globe']
@@ -78,9 +114,13 @@ def get_tweets(year):
         TWEETS = [t["text"].strip() for t in data]
         TWEETS = pre_process(TWEETS)
     else:
-        fp = open(f, 'r')
-        data = json.load(fp)
-        TWEETS = [t["text"] for t in data]
+        with open(f, 'r') as fp:
+            tweets = ijson.items(fp, 'item.text')
+            for t in tweets:
+                TWEETS.append(str(t))
+            fp.close()
+        # data = json.load(fp)
+        # TWEETS = [t["text"] for t in data]
         TWEETS = pre_process(TWEETS)
     print("Finished loading {} tweets".format(len(TWEETS)))
 
@@ -147,7 +187,6 @@ def generate_award_tweet_dict():
     substitutes["television series"] = ['series', 'tv', 't.v.', 'television']
     substitutes["television"] = ['tv', 't.v.']
 
-    threshold = 3
     for award in OFFICIAL_AWARDS_LIST:
         if len(award.split()) > 5:
             threshold = 4
@@ -192,7 +231,6 @@ def generate_award_tweet_dict_old():
 
     print("Processing Tweets...")
 
-    award_tweet_dict = {award: [] for award in OFFICIAL_AWARDS_LIST}
     stoplist = ['best', '-', 'award', 'for', 'or', 'made', 'in', 'a', 'by', 'performance', 'an', 'role', 'motion',
                 'picture', 'television', 'limited', 'series', 'musical', 'comedy']
     clean_award_names = {award: [[a for a in award.lower().split(' ') if not a in stoplist]] for award
@@ -242,7 +280,6 @@ def get_hosts(year):
     m = 0
     n = 0
     name = ""
-    host = ""
     cont = 0
     lis = []
     # row = open('gg2013.json', encoding="utf8")
@@ -256,10 +293,10 @@ def get_hosts(year):
         k += 1
         host = ""
         count = 0
-        if i1 != None or i2 != None:
+        if i1 is not None or i2 != None:
             doc = nlp(tw)
             for ent in doc.ents:
-                if (ent.label_ == 'PERSON'):
+                if ent.label_ == 'PERSON':
                     # print("the person identified")
                     lis.append(ent.text)
 
@@ -287,7 +324,6 @@ def get_hosts(year):
             j += 1
 
         if i == -1 and l != -1:
-
             m += 1
 
     t = collections.Counter(lis)
@@ -299,7 +335,7 @@ def get_hosts(year):
     for i in range(0, 7):
         ch = 0
         for j in range(0, 7):
-            if (t[i][0] in t[j][0]):
+            if t[i][0] in t[j][0]:
                 ch += 1
         if ch == 1:
             host_fil.append(t[i][0])
@@ -309,8 +345,7 @@ def get_hosts(year):
     fin = (collections.Counter(host_dic)).most_common(7)
 
     ratio = (fin[1][1] / fin[0][1])
-    ans = []
-    ans.append(fin[0][0])
+    ans = [fin[0][0]]
     if ratio > 0.65:
         ans.append(fin[1][0])
 
@@ -329,7 +364,6 @@ def get_awards(year):
     t = []
     mul_categ = []
     new_categ = []
-
 
     lem = WordNetLemmatizer()
     genre_lis = ["director", "actor", "actress", "award", "screenplay", "motion", "picture", "tv", "television",
@@ -456,16 +490,12 @@ def get_awards(year):
                         categ = ""
                         count = 0
                         append = 0
-                apeend = 0
-                count = 0
-                categ = ""
 
     fil_categ = {}
     # print("multiple_categ", mul_categ)
     # print("new_categs", new_categ)
 
     t = collections.Counter(new_categ)
-    g = dict(t)
     disc = []
     # print("val vhevlk", t)
     # print("val vhevlk", t[1])
@@ -531,7 +561,6 @@ def get_awards(year):
                 filtered_awards[i] = f[i]
                 break
 
-
     # print("total tweets", n, m)
     # print(ans)
 
@@ -546,9 +575,6 @@ def get_nominees(year):
     # TODO: Remove gloden globes stopwords
     ia = IMDb()
 
-    stop_list_people = ['best', '-', 'award', 'for', 'or', 'made', 'in', 'a', 'by', 'performance', 'an', 'golden',
-                        'globes', 'role', 'motion', 'picture', 'best', 'supporting']
-
     stoplist2 = ['golden globes', 'golden', 'globes', 'goldenglobes', '2020', 'best', 'motion', 'picture', 'best',
                  'supporting', '-', 'animated', 'best', 'comedy', 'drama', 'feature', 'film', 'foreign', 'globe',
                  'goes', 'golden', 'motion', 'movie', 'musical', 'or', 'original', 'picture', 'rt', 'series',
@@ -559,9 +585,6 @@ def get_nominees(year):
     award_list = ['best motion picture - drama', 'best motion picture - comedy or musical',
                   'best television series - drama', 'best television series - comedy or musical',
                   'best animated feature film']
-    words = ['didn\'t win', 'should\'ve won', 'should have won', 'did not win', 'deserved to win',
-             'not win']
-    firstWords = ['didn\'t', 'should\'ve', 'should', 'did', 'deserved', 'not']
 
     new_award_list = [a for a in OFFICIAL_AWARDS_LIST if a not in award_list]
     for award in new_award_list:
@@ -636,7 +659,6 @@ def get_nominees(year):
         for award in award_list:
             AWARD_NOMINEE_DICT[award] = new_arr[:10]
 
-
     return AWARD_NOMINEE_DICT
 
 
@@ -647,16 +669,13 @@ def get_winner(year):
     # print(lem.lemmatize("won"))
     # print(lem.lemmatize("winning"))
     # print(lem.lemmatize("winner"))
-    wordfreq = {}
+
     co = 0
     title = ['for', "wins", "congrats", "i", '...', 'top', 'award', 'globes', 'globe', 'at', "https", 'golden', 'http',
              '|', '#', '.', '!', '?', '\\', ':', ';', '"', "'", 'the', 'but', 'although', '#goldenglobes', 'and', '`',
              'who', '&', "``"]
-    estop = ['for', 'at', "https", 'golden' 'http', '#', '.', ',', '!', '-', '?', '\\', ':', ';', '"', "'", 'the',
-             'but', 'although']
 
     a = set()
-    list = []
     pre = {}
     # print(t['text'])
     for t in TWEETS:
@@ -670,7 +689,6 @@ def get_winner(year):
             if i.lower() in t.lower():
                 # print(i,"tweet-->",t["text"])
                 new_list = []
-                lis = []
                 tit = ""
                 for h in word_tokens:
                     if h.istitle() and h.lower() not in title and h.lower() not in i:
@@ -688,9 +706,6 @@ def get_winner(year):
                         new_list.append(h)
                     pre[i] = new_list
 
-
-        sent = ""
-
     ans = {}
     for j in OFFICIAL_AWARDS_LIST:
         ci = 0
@@ -699,12 +714,11 @@ def get_winner(year):
                 ci += 1
         if ci == 0:
             # print("nf", j)
-            res = get_winner_old([j])
-            ans[j] = res[j]
+            # res = get_winner_old([j])
+            ans[j] = list()
 
     for i in pre:
         ans[i] = collections.Counter(pre[i]).most_common(1)[0][0]
-
 
     AWARD_WINNER_DICT = ans
 
@@ -714,32 +728,19 @@ def get_winner_old(award_given):
     names as keys, and each entry containing a single string.
     Do NOT change the name of this function or what it returns.'''
     # Your code here
-    global CLEAN_AWARD_NAMES, OFFICIAL_AWARDS_LIST, AWARD_WINNER_DICT
-    AWARD_WINNER_DICT = {}
-    t = []
-    mul_categ = []
+    global CLEAN_AWARD_NAMES, OFFICIAL_AWARDS_LIST
+    temp_dict = {}
     new_categ = []
 
-    person = ["actor", "actress", "director", "cecil"]
-
-
-    lem = WordNetLemmatizer()
     genre_lis = ["director", "actor", "actress", "award", "screenplay", "motion", "picture", "tv", "television",
                  "series", "drama", "comedy,musical,mini,series,cecil,song,score"]
     # print(lem.lemmatize("won"))
     # print(lem.lemmatize("winning"))
-    # print(lem.lemmatize("winner"))
-    i = 0
-    j = 0
+
     k = 0
-    m = 0
-    n = 0
-    name = ""
-    host = ""
-    cont = 0
-    lis = []
+
     winner = {}
-    ex_cat = []
+
     c = 1
     estop = ['for', '...', 'award', 'globe', 'at', "https", 'golden', 'http', '|', '#', '.', '!', '?', '\\', ':', ';',
              '"', "'", 'the', 'but', 'although', '#goldenglobes', 'and', '`', 'who', '&', "``"]
@@ -760,12 +761,8 @@ def get_winner_old(award_given):
             i5 = re.search("RT", t)
             l = t.find("best")
             k += 1
-            host = ""
-            count = 0
-            val = 0
 
             if i5 == None and i1 != None and (i2 != None or i3 != None):
-                h = 0
                 # print("hi I was here")
                 append = 0
                 st = 0
@@ -773,12 +770,10 @@ def get_winner_old(award_given):
                 count = 0
                 val = 0
                 word_tokens = word_tokenize(t)
-                pe = ""
-                mo = ""
-                lis = []
+
                 tit = ""
                 new_list = []
-                a = set()
+
                 for i in word_tokens:
                     if i.istitle() and i.lower() not in title and st == 0:
                         tit = tit + " " + i
@@ -791,10 +786,6 @@ def get_winner_old(award_given):
                     #############################################################################
                     if i == "wins" or i == "bags":
                         st = 1
-                        doc = nlp(t)
-                        # print(t["text"])
-                        p = 0
-                        m = 0
 
                     if st == 1 and (i == "best" or i == "Best"):
                         append = 1
@@ -825,9 +816,7 @@ def get_winner_old(award_given):
                         categ = ""
                         count = 0
                         append = 0
-                append = 0
-                count = 0
-                categ = ""
+
                 ###############################################################################################
                 # print("congrats waale :",t['text'])
                 # m+=1
@@ -871,10 +860,10 @@ def get_winner_old(award_given):
             # print(arr)
             for tup in arr:
                 if tup[arr.index(tup)][0]:
-                    AWARD_WINNER_DICT[award] = tup[0]
+                    temp_dict[award] = tup[0]
                     break
         else:
-            AWARD_WINNER_DICT[award] = []
+            temp_dict[award] = []
 
     # tup = collections.Counter(new_categ)
     # g=dict(t)
@@ -882,7 +871,7 @@ def get_winner_old(award_given):
     # print("val vhevlk",t)
     # print("val vhevlk", tup)
 
-    return AWARD_WINNER_DICT
+    return temp_dict
 
 
 def generate_json(year):
@@ -975,9 +964,11 @@ def pre_ceremony(year):
     # awards_list = f.read()
     # OFFICIAL_AWARDS_LIST = ['best motion picture - drama']
 
-    df = pd.read_csv("film_data.csv", usecols=['titleType', 'primaryTitle', 'startYear', 'genres'],
-                     dtype={"titleType": object, "primaryTitle": object, "startYear": object, "genres": object})
-    FILM_DATA = df.loc[(df['startYear'] == str(int(year) - 1)) | (df['startYear'] == str(year))]
+    # df = pd.read_csv("title.basics.tsv", sep="\t", usecols=['titleType', 'primaryTitle', 'startYear', 'genres'],
+    #                  dtype={"titleType": object, "primaryTitle": object, "startYear": object, "genres": object})
+    FILM_DATA = pd.read_csv("film_data.csv", usecols=['titleType', 'primaryTitle', 'startYear', 'genres'],
+                            dtype={"titleType": object, "primaryTitle": object, "startYear": object, "genres": object})
+    # FILM_DATA = df.loc[(df['startYear'] == str(int(year) - 1)) | (df['startYear'] == str(year))]
     # FILM_DATA.to_csv('film_data.csv')
     print("Size of filmDB: {}".format(FILM_DATA.shape))
 
@@ -985,16 +976,13 @@ def pre_ceremony(year):
     return
 
 
-def main():
+def main(year):
     '''This function calls your program. Typing "python gg_api.py"
     will run this function. Or, in the interpreter, import gg_api
     and then run gg_api.main(). This is the second thing the TA will
     run when grading. Do NOT change the name of this function or
     what it returns.'''
     global TWEETS
-
-    print("Enter YEAR")
-    year = input()
 
     pre_ceremony(year)
     get_tweets(year)
@@ -1006,15 +994,9 @@ def main():
     print("Nominees")
     get_presenters(year)
     print("Presenters")
-    get_winner(year)
-    print("Winners")
+    # get_winner(year)
+    # print("Winners")
     generate_json(year)
-    print("Running Additional Tasks")
-    hashtag_trends(year)
-    sentiment(year)
-    bd = best_dressed(TWEETS)
-    wd = worst_dressed(TWEETS)
-    redCarpet_dress(bd, wd)
 
     return
 
@@ -1068,7 +1050,6 @@ def hashtag_trends(year):
         x.append(i[0])
         y.append(i[1])
 
-
     fig = plt.figure()
     plt.bar(x, y)
     # plt.yticks(y, x)
@@ -1083,7 +1064,6 @@ def hashtag_trends(year):
 
 
 def sentiment(year):
-
     t = []
     mul_categ = []
     new_categ = []
@@ -1144,7 +1124,7 @@ def sentiment(year):
     xax = []
     yax = []
     for i in range(0, len(time)):
-        diff = time[i] - int
+        diff = float(time[i]) - float(int)
         # print(diff)
         # print("count", count)
         if float(diff) > 10000:
@@ -1158,7 +1138,7 @@ def sentiment(year):
             sum1 = 0
             sum2 = 0
         else:
-            sum1 = sum1 + time[i]
+            sum1 = sum1 + float(time[i])
             sum2 = sum2 + y[i]
             count += 1
     l = len(y)
@@ -1264,7 +1244,6 @@ def redCarpet_dress(best_dress, worst_dress):
     f.close()
 
 
-
 def best_dressed(tweets):
     best_dressed_dictionary = {}
     for tweet in tweets:
@@ -1315,4 +1294,20 @@ def worst_dressed(tweets):
 
 
 if __name__ == '__main__':
-    main()
+    print("Enter YEAR")
+    year = input()
+    start_time, start_resources = timestamp(), resource_usage(RUSAGE_SELF)
+    main(year)
+    end_resources, end_time = resource_usage(RUSAGE_SELF), timestamp()
+
+    print({'real': (end_time - start_time) / 60.0,
+            'sys': end_resources.ru_stime - start_resources.ru_stime,
+            'user': end_resources.ru_utime - start_resources.ru_utime})
+    print("Running Additional Tasks")
+    hashtag_trends(year)
+    sentiment(year)
+    print("sentiment")
+    bd = best_dressed(TWEETS)
+    wd = worst_dressed(TWEETS)
+    redCarpet_dress(bd, wd)
+
